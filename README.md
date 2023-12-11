@@ -1,7 +1,7 @@
-# multigpu
+# Multigpu
 
 ## use this command
 
-'''bash
+"""bash
 accelerate launch multigpu_multi_loss.py --num_processes = 4 
-'''
+"""
