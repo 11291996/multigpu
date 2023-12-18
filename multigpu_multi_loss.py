@@ -6,13 +6,13 @@ import time
 import os
 from accelerate import Accelerator
 
-input_size = 768
+input_size = 10
 output_size = 1
 
 batch_size = 10000
 data_size = 100000
 learning_rate = 0.001
-epoch = 100
+epoch = 10
 
 class RandomDataset(Dataset):
 
@@ -43,10 +43,7 @@ class Model(nn.Module):
 
 accelerator = Accelerator()
 
-device = accelerator.device
-
 model = Model(input_size, output_size)
-model = model.to(device)
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate) 
@@ -57,15 +54,15 @@ i = 1
 start = time.time()
 for epoch in range(epoch):
     for data, target in rand_loader:
-        data = data.to(device)
-        target = target.to(device)
+        data = data
+        target = target
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
         accelerator.backward(loss)
         optimizer.step()
         loss = accelerator.gather(loss) #creates a tensor of losses from each gpu
-        if i % 1 == 0:
+        if i % 10 == 0:
             accelerator.print("Train Step : {}\tLoss : {:3f}".format(i, loss.sum().item()))
         i += 1
 end = time.time()
