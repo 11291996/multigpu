@@ -50,20 +50,26 @@ optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
 rand_loader, model, optimizer, criterion = accelerator.prepare(rand_loader, model, optimizer, criterion) #sends data and model to gpu
 
+#to use accumulative loss
+accelerator = Accelerator(accumulation_steps=2) #accumulates loss for 2 steps
+
 i = 1
 start = time.time()
-for epoch in range(epoch): #for tqdms one can send in an argument to print the bar for single processing
+for epoch in range(epoch): #for tqdms one can send in an argument to print the bar for single processin
     for data, target in rand_loader:
+        accelerator.accumulate(model) #for automatic loss accumulation in step() function below
         data = data
         target = target
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
         accelerator.backward(loss) #distributed loss calculation
-        optimizer.step() 
+        optimizer.step() #updates weights
         loss = accelerator.gather(loss) #creates a tensor of losses from each gpu
         if i % 10 == 0:
             accelerator.print("Train Step : {}\tLoss : {:3f}".format(i, loss.sum().item())) #print for single process
         i += 1
 end = time.time()
 accelerator.print("Time taken : {}".format(end - start)) #print for single process
+
+
